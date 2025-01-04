@@ -1,16 +1,16 @@
-# Pokemon GO Web AR Game
+# Pokemon GO AI Interactive Game
 
-A web-based augmented reality Pokemon catching game inspired by Pokemon GO. This project uses MediaPipe for hand tracking and Three.js for 3D graphics to create an interactive Pokemon catching experience in your browser.
+A web-based AI interactive Pokemon catching game inspired by Pokemon GO. This project uses MediaPipe for hand tracking and Three.js for 3D graphics to create an interactive Pokemon catching experience in your browser.
 
 ## Demo
 
-https://github.com/yinkaizhai/pokemon-go-web-ar/raw/master/showcase.mp4
+https://user-images.githubusercontent.com/yinkaizhai/pokemon-go-web-ar/assets/showcase.mp4
 
 ## Features
 
 - Interactive map with randomly spawning Pokemon
 - Hand gesture-based Pokeball throwing mechanics
-- Augmented reality Pokemon capture experience
+- AI-powered interactive capture experience
 - Location-based gameplay
 - Beautiful visual effects and animations
 - Mobile-friendly design
@@ -18,7 +18,7 @@ https://github.com/yinkaizhai/pokemon-go-web-ar/raw/master/showcase.mp4
 ## Technologies Used
 
 - Three.js for 3D graphics
-- MediaPipe for hand tracking
+- MediaPipe for AI hand tracking and gesture recognition
 - Mapbox for map integration
 - HTML5 Canvas for rendering
 - Modern CSS3 for animations and styling
@@ -27,7 +27,7 @@ https://github.com/yinkaizhai/pokemon-go-web-ar/raw/master/showcase.mp4
 ## Prerequisites
 
 - Modern web browser with WebGL support
-- Camera access for hand tracking
+- Camera access for AI hand tracking
 - Internet connection for map data
 - Your own Mapbox API token
 
@@ -75,7 +75,7 @@ cd pokemon-go-web-ar
 
 ## Project Structure
 ```
-pokemon-go-web/
+pokemon-go-web-ar/
 ├── index.html
 ├── README.md
 ├── LICENSE
@@ -126,6 +126,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 1. **Mapbox Token**: The current Mapbox token in the code may be deactivated. Please use your own token for development.
 2. **Pokemon Assets**: The Pokemon GIF files need to be downloaded separately from the provided Google Drive link due to size constraints.
 3. **Asset Credits**: All Pokemon sprites are sourced from PkParaiso and are used for educational purposes only.
+4. **AI Features**: This project uses MediaPipe's AI capabilities for hand tracking and gesture recognition to create an interactive gaming experience.
 
 ## Disclaimer
 
