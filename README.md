@@ -4,7 +4,7 @@ A web-based augmented reality Pokemon catching game inspired by Pokemon GO. This
 
 ## Demo
 
-https://github.com/yourusername/pokemon-go-web/assets/showcase.mp4
+https://github.com/yinkaizhai/pokemon-go-web-ar/raw/master/showcase.mp4
 
 ## Features
 
@@ -35,13 +35,14 @@ https://github.com/yourusername/pokemon-go-web/assets/showcase.mp4
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/pokemon-go-web.git
-cd pokemon-go-web
+git clone https://github.com/yinkaizhai/pokemon-go-web-ar.git
+cd pokemon-go-web-ar
 ```
 
 2. Download Pokemon GIF assets:
    - Download the GIF pack from [Google Drive](https://drive.google.com/file/d/1xWZTGFYTEHtn_bqpcQE4DPcoNG7zZYLn/view?usp=drive_link)
-   - Extract and place the GIFs in the `src/assets/gifs` directory
+   - Extract and place all GIF files in the `src/assets/gifs` directory
+   - **Important**: The `src/assets/gifs` directory is not included in the repository due to size constraints. You must download and add these files manually.
 
 3. Configure Mapbox:
    - Sign up for a Mapbox account at https://www.mapbox.com

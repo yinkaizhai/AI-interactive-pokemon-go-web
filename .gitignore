@@ -29,4 +29,8 @@ yarn-error.log*
 # Build files
 dist/
 build/
-.cache/ 
+.cache/
+
+# Pokemon GIF files (need to be downloaded separately)
+# Download from: https://drive.google.com/file/d/1xWZTGFYTEHtn_bqpcQE4DPcoNG7zZYLn/view?usp=drive_link
+src/assets/gifs/*.gif 
