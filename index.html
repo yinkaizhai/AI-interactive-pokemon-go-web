@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon GO Web AR</title>
+    
+    <!-- External Libraries -->
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="src/css/style.css">
+    
+    <!-- Mobile Web App Settings -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <!-- Map Page -->
+    <div id="mapPage">
+        <div id="map"></div>
+        <div class="search-container">
+            <input type="text" id="search" placeholder="Search for location..." />
+            <button id="searchBtn">Search</button>
+        </div>
+    </div>
+
+    <!-- Capture Page -->
+    <div id="capturePage">
+        <button class="abandon-button" onclick="abandonCapture()">Abandon Capture</button>
+        <div class="game-background">
+            <div class="battle-platform platform-left"></div>
+            <div class="battle-platform platform-right"></div>
+            <div class="divider-line"></div>
+            <div class="center-pokeball">
+                <div class="line-left"></div>
+                <div class="line-right"></div>
+                <div class="circle-outer"></div>
+                <div class="circle-inner"></div>
+            </div>
+        </div>
+        <video id="video" autoplay playsinline></video>
+        <canvas id="outputCanvas"></canvas>
+        <canvas id="threeCanvas"></canvas>
+        <img id="pokemon" src="" alt="Pokemon">
+        <div id="absorbBeam">
+            <div class="beam-inner"></div>
+        </div>
+    </div>
+
+    <!-- Custom Scripts -->
+    <!-- Load capture.js first as it contains functions needed by map.js -->
+    <script src="src/js/capture.js"></script>
+    <script src="src/js/animations.js"></script>
+    <script src="src/js/map.js"></script>
+    
+    <script>
+        // Initialize map page
+        window.onload = async () => {
+            await loadPokemonFiles();
+            document.getElementById('mapPage').style.display = 'block';
+            
+            const initialPokemon = Math.min(MAX_POKEMON_IN_VIEW, 10);
+            for(let i = 0; i < initialPokemon; i++) {
+                setTimeout(() => addRandomGifInView(), i * 200);
+            }
+            
+            setInterval(checkPokemonInView, 5000);
+
+            // Add event listener for abandon button
+            document.getElementById('abandonBtn').addEventListener('click', () => {
+                if (typeof window.abandonCapture === 'function') {
+                    window.abandonCapture();
+                }
+            });
+        };
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (typeof renderer !== 'undefined' && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+    </script>
+</body>
+</html> 
