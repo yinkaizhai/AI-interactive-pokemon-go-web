@@ -4,10 +4,13 @@ A web-based AI interactive Pokemon catching game inspired by Pokemon GO. This pr
 
 ## Demo
 
-<video width="100%" controls>
-  <source src="showcase.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Demo Video](src/assets/showcase.mp4)
+
+### Key Features
+- 🗺️ **Interactive Map**: Explore the world with Pokemon spawns
+- 🖐️ **Hand Gestures**: Use natural hand movements to throw Pokeballs
+- 🎯 **AI Tracking**: Real-time hand position detection
+- ✨ **Visual Effects**: Beautiful capture animations
 
 ## Features
 
