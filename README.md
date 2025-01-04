@@ -6,9 +6,6 @@ A web-based AI interactive Pokemon catching game inspired by Pokemon GO. This pr
 
 [![Demo Video](https://img.youtube.com/vi/lPNULsQs6I8/0.jpg)](https://youtu.be/lPNULsQs6I8)
 
-### Game Screenshots
-![Game Screenshot 1](src/assets/1.png)
-![Game Screenshot 2](src/assets/2.png)
 
 ### Key Features
 - 🗺️ **Interactive Map**: Explore the world with Pokemon spawns
