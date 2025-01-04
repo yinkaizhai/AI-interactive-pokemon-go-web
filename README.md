@@ -4,7 +4,11 @@ A web-based AI interactive Pokemon catching game inspired by Pokemon GO. This pr
 
 ## Demo
 
-![Demo Video](src/assets/showcase.mp4)
+[![Demo Video](https://img.youtube.com/vi/lPNULsQs6I8/0.jpg)](https://youtu.be/lPNULsQs6I8)
+
+### Game Screenshots
+![Game Screenshot 1](src/assets/1.png)
+![Game Screenshot 2](src/assets/2.png)
 
 ### Key Features
 - 🗺️ **Interactive Map**: Explore the world with Pokemon spawns
@@ -41,8 +45,8 @@ A web-based AI interactive Pokemon catching game inspired by Pokemon GO. This pr
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yinkaizhai/pokemon-go-web-ar.git
-cd pokemon-go-web-ar
+git clone https://github.com/yinkaizhai/AI-interactive-pokemon-go-web.git
+cd AI-interactive-pokemon-go-web
 ```
 
 2. Download Pokemon GIF assets:
@@ -81,7 +85,7 @@ cd pokemon-go-web-ar
 
 ## Project Structure
 ```
-pokemon-go-web-ar/
+AI-interactive-pokemon-go-web/
 ├── index.html
 ├── README.md
 ├── LICENSE
