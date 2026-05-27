@@ -54,7 +54,10 @@
                 <div class="circle-inner"></div>
             </div>
         </div>
-        <video id="video" autoplay playsinline></video>
+        <div class="camera-preview" aria-label="Live camera preview">
+            <video id="video" autoplay playsinline muted></video>
+            <span class="camera-preview-label">Camera</span>
+        </div>
         <canvas id="outputCanvas"></canvas>
         <canvas id="threeCanvas"></canvas>
         <img id="pokemon" src="" alt="Animated creature" referrerpolicy="no-referrer">

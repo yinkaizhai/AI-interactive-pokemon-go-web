@@ -251,8 +251,12 @@ async function switchCaptureCamera() {
 
 function updateCameraButton() {
     const cameraButton = document.getElementById('switchCameraBtn');
+    const cameraPreview = document.querySelector('.camera-preview');
     if (cameraButton) {
         cameraButton.textContent = activeFacingMode === 'user' ? 'Use rear camera' : 'Use front camera';
+    }
+    if (cameraPreview) {
+        cameraPreview.classList.toggle('is-mirrored', activeFacingMode === 'user');
     }
 }
 
