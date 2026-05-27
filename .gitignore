@@ -33,3 +33,9 @@ build/
 
 # Pokemon GIF files are loaded remotely and should not be committed.
 src/assets/gifs/*.gif
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
