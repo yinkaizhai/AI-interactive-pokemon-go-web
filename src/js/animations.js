@@ -217,27 +217,102 @@ function shakePokeballOnce(totalShakes) {
 
 function finishCatching() {
     if (catchSuccess) {
-        showMessage('Gotcha! Pokemon was caught!', true);
-        
-        // Download the GIF
-        const link = document.createElement('a');
-        link.href = selectedPokemonGif;
-        link.download = `${selectedPokemon}.gif`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        setTimeout(() => {
-            returnToMap(true);
-        }, 1500);
+        showCatchSuccessDialog();
     } else {
-        showMessage('Oh no! The wild Pokemon broke free!');
+        showMessage('Oh no! The wild creature broke free!');
         releasePokemon();
     }
     
     isCatchingpokemon = false;
     isThrown = false;
     isBouncing = false;
+}
+
+function showCatchSuccessDialog() {
+    const existingDialog = document.querySelector('.catch-dialog');
+    if (existingDialog) {
+        existingDialog.remove();
+    }
+
+    const dialog = document.createElement('section');
+    dialog.className = 'catch-dialog';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-label', 'Creature caught');
+
+    const title = document.createElement('h2');
+    title.textContent = 'Gotcha! Creature caught!';
+
+    const note = document.createElement('p');
+    note.textContent = 'Sprite hosted by PkParaiso. This app does not license downloads; save only if permitted.';
+
+    const status = document.createElement('p');
+    status.className = 'download-status';
+    status.setAttribute('aria-live', 'polite');
+
+    const actions = document.createElement('div');
+    actions.className = 'catch-dialog-actions';
+
+    const downloadButton = document.createElement('button');
+    downloadButton.type = 'button';
+    downloadButton.className = 'download-button';
+    downloadButton.textContent = 'Download sprite';
+    downloadButton.addEventListener('click', () => downloadPokemonSprite(status));
+
+    const continueButton = document.createElement('button');
+    continueButton.type = 'button';
+    continueButton.className = 'continue-button';
+    continueButton.textContent = 'Continue';
+    continueButton.addEventListener('click', () => {
+        dialog.remove();
+        returnToMap(true);
+    });
+
+    actions.append(downloadButton, continueButton);
+    dialog.append(title, note, status, actions);
+    document.body.appendChild(dialog);
+}
+
+async function downloadPokemonSprite(statusElement) {
+    if (!selectedPokemonGif || !selectedPokemon) {
+        return;
+    }
+
+    const spriteUrl = selectedPokemonGif;
+    const filename = `${selectedPokemon}.gif`;
+
+    // Reserve a user-opened tab for the expected no-CORS fallback on static hosting.
+    const sourceTab = window.open('', '_blank');
+    statusElement.textContent = 'Preparing download...';
+
+    try {
+        const response = await fetch(spriteUrl, {
+            mode: 'cors',
+            referrerPolicy: 'no-referrer'
+        });
+        if (!response.ok) {
+            throw new Error(`Download request failed: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = filename;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+        if (sourceTab) {
+            sourceTab.close();
+        }
+        statusElement.textContent = 'Download started.';
+    } catch (error) {
+        if (sourceTab) {
+            sourceTab.opener = null;
+            sourceTab.location.replace(spriteUrl);
+            statusElement.textContent = 'The original GIF opened in a new tab. Save the image there.';
+        } else {
+            window.location.assign(spriteUrl);
+        }
+    }
 }
 
 function showMessage(text, isSuccess = false) {
@@ -321,4 +396,4 @@ function releasePokemon() {
 
 // Export necessary functions
 window.startAbsorbAnimation = startAbsorbAnimation;
-window.releasePokemon = releasePokemon; 
+window.releasePokemon = releasePokemon;

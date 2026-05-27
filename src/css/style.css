@@ -68,6 +68,23 @@ body {
     gap: 10px;
 }
 
+.project-notice {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    max-width: 360px;
+    padding: 10px 12px;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    font: 12px/1.4 Arial, sans-serif;
+    z-index: 1001;
+}
+
+.project-notice a {
+    color: #9ad7ff;
+}
+
 #search {
     padding: 10px;
     width: 250px;
@@ -385,4 +402,68 @@ video {
 .fail {
     background: rgba(255, 223, 0, 0.9);
     color: #000;
-} 
+}
+
+.catch-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(400px, calc(100vw - 40px));
+    padding: 22px;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.96);
+    color: #111111;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    text-align: center;
+    font-family: Arial, sans-serif;
+    z-index: 1100;
+}
+
+.catch-dialog h2 {
+    margin: 0 0 10px;
+    font-size: 22px;
+}
+
+.catch-dialog p {
+    margin: 0 0 14px;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.download-status {
+    min-height: 20px;
+    color: #444444;
+}
+
+.catch-dialog-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.catch-dialog-actions button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.download-button {
+    background: #1976d2;
+    color: #ffffff;
+}
+
+.continue-button {
+    background: #e0e0e0;
+    color: #111111;
+}
+
+@media (max-width: 600px) {
+    .project-notice {
+        left: 12px;
+        right: 12px;
+        max-width: none;
+    }
+}

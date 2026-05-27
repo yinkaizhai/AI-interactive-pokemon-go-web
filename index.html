@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokemon GO Web AR</title>
+    <title>AR Creature Catch - Unofficial Fan Demo</title>
+    <meta name="description" content="An unofficial, non-commercial hand-tracking creature-catching web experiment.">
     
     <!-- External Libraries -->
-    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -28,11 +29,17 @@
             <input type="text" id="search" placeholder="Search for location..." />
             <button id="searchBtn">Search</button>
         </div>
+        <aside class="project-notice">
+            Unofficial, non-commercial fan experiment. Animated sprites are loaded from
+            <a href="https://www.pkparaiso.com/espada_escudo/sprites_pokemon.php?cid=14&amp;order=#sprites"
+               target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">PkParaiso</a>.
+            Pokemon and related marks belong to their respective owners. No affiliation or endorsement.
+        </aside>
     </div>
 
     <!-- Capture Page -->
     <div id="capturePage">
-        <button class="abandon-button" onclick="abandonCapture()">Abandon Capture</button>
+        <button id="abandonBtn" class="abandon-button">Abandon Capture</button>
         <div class="game-background">
             <div class="battle-platform platform-left"></div>
             <div class="battle-platform platform-right"></div>
@@ -47,7 +54,7 @@
         <video id="video" autoplay playsinline></video>
         <canvas id="outputCanvas"></canvas>
         <canvas id="threeCanvas"></canvas>
-        <img id="pokemon" src="" alt="Pokemon">
+        <img id="pokemon" src="" alt="Animated creature" referrerpolicy="no-referrer">
         <div id="absorbBeam">
             <div class="beam-inner"></div>
         </div>
@@ -90,4 +97,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

@@ -1,9 +1,7 @@
-// Map configuration
-mapboxgl.accessToken = 'pk.eyJ1IjoiemhhaXlpbmthaSIsImEiOiJjbTNiMGE1amUxajN6MnBvbXpleXF2ZzdjIn0.zuE2gNQaYsC5FjeR85yM_w';
-
-const map = new mapboxgl.Map({
+// Map configuration: token-free OpenFreeMap tiles through MapLibre.
+const map = new maplibregl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v12',
+    style: 'https://tiles.openfreemap.org/styles/liberty',
     center: [151.17074, -33.87841],
     zoom: 14,
     maxZoom: 16,
@@ -14,7 +12,7 @@ const map = new mapboxgl.Map({
     touchZoomRotate: false
 });
 
-const nav = new mapboxgl.NavigationControl({
+const nav = new maplibregl.NavigationControl({
     showCompass: false,
     showZoom: true,
     visualizePitch: false
@@ -26,6 +24,7 @@ const MAX_MARKERS = 80;
 const MAX_POKEMON_IN_VIEW = 20;
 const MIN_POKEMON_IN_VIEW = 5;
 const REFRESH_DELAY = 15000;
+const POKEMON_GIF_BASE_URL = 'https://www.pkparaiso.com/imagenes/espada_escudo/sprites/animados/';
 const POKEMON_LIFETIME = {
     MIN: 10 * 60 * 30,
     MAX: 20 * 60 * 1000
@@ -40,20 +39,26 @@ let lastRefreshTime = Date.now();
 async function loadPokemonFiles() {
     try {
         const response = await fetch('pokemon_files.json');
+        if (!response.ok) {
+            throw new Error(`Pokemon list request failed: ${response.status}`);
+        }
         const files = await response.json();
-        availableGifs = files.map(file => `src/assets/${file}`);
-        console.log(`Loaded ${availableGifs.length} Pokemon files`);
+        availableGifs = files.map(file => {
+            const remoteFile = file.replace(/^gifs\/\d+-/, '');
+            return `${POKEMON_GIF_BASE_URL}${encodeURIComponent(remoteFile)}`;
+        });
+        console.log(`Loaded ${availableGifs.length} remote Pokemon sprites`);
     } catch (error) {
         console.error('Failed to load Pokemon list:', error);
         availableGifs = [
-            'src/assets/gifs/094-gengar.gif',
-            'src/assets/gifs/025-pikachu.gif'
+            `${POKEMON_GIF_BASE_URL}gengar.gif`,
+            `${POKEMON_GIF_BASE_URL}pikachu.gif`
         ];
     }
 }
 
 function getRandomGif() {
-    if (availableGifs.length === 0) return 'assets/gifs/025-pikachu.gif';
+    if (availableGifs.length === 0) return `${POKEMON_GIF_BASE_URL}pikachu.gif`;
     return availableGifs[Math.floor(Math.random() * availableGifs.length)];
 }
 
@@ -81,6 +86,8 @@ async function addRandomGifInView() {
     const gifElement = document.createElement('img');
     gifElement.className = 'gif-marker';
     gifElement.src = randomGif;
+    gifElement.alt = 'Wild animated creature';
+    gifElement.referrerPolicy = 'no-referrer';
 
     background.appendChild(gifElement);
     container.appendChild(background);
@@ -118,7 +125,7 @@ async function addRandomGifInView() {
 
     container.addEventListener('click', () => {
         console.log('Pokemon clicked:', randomGif);
-        const pokemonName = randomGif.split('/').pop().split('.')[0];
+        const pokemonName = decodeURIComponent(randomGif.split('/').pop()).replace(/\.gif$/, '');
         if (typeof window.startCapture === 'function') {
             window.startCapture(pokemonName, randomGif);
         } else {
@@ -176,11 +183,11 @@ function searchLocation() {
     const query = document.getElementById('search').value;
     if (!query) return;
     
-    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}&language=en`)
+    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=en`)
         .then(response => response.json())
         .then(data => {
             if (data.features && data.features.length > 0) {
-                const [lng, lat] = data.features[0].center;
+                const [lng, lat] = data.features[0].geometry.coordinates;
                 map.flyTo({
                     center: [lng, lat],
                     zoom: 14,
@@ -216,4 +223,4 @@ document.getElementById('search').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         searchLocation();
     }
-}); 
+});

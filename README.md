@@ -1,6 +1,6 @@
-# Pokemon GO AI Interactive Game
+# AR Creature Catch - Unofficial Fan Demo
 
-A web-based AI interactive Pokemon catching game inspired by Pokemon GO. This project uses MediaPipe for hand tracking and Three.js for 3D graphics to create an interactive Pokemon catching experience in your browser.
+A web-based, unofficial and non-commercial creature-catching experiment. This project uses MediaPipe for hand tracking and Three.js for 3D graphics to create an interactive capture experience in your browser.
 
 ## Demo
 
@@ -26,7 +26,7 @@ A web-based AI interactive Pokemon catching game inspired by Pokemon GO. This pr
 
 - Three.js for 3D graphics
 - MediaPipe for AI hand tracking and gesture recognition
-- Mapbox for map integration
+- MapLibre GL JS with OpenFreeMap map tiles
 - HTML5 Canvas for rendering
 - Modern CSS3 for animations and styling
 - Vanilla JavaScript for game logic
@@ -36,7 +36,6 @@ A web-based AI interactive Pokemon catching game inspired by Pokemon GO. This pr
 - Modern web browser with WebGL support
 - Camera access for AI hand tracking
 - Internet connection for map data
-- Your own Mapbox API token
 
 ## Setup
 
@@ -46,27 +45,30 @@ git clone https://github.com/yinkaizhai/AI-interactive-pokemon-go-web.git
 cd AI-interactive-pokemon-go-web
 ```
 
-2. Download Pokemon GIF assets:
-   - Download the GIF pack from [Google Drive](https://drive.google.com/file/d/1xWZTGFYTEHtn_bqpcQE4DPcoNG7zZYLn/view?usp=drive_link)
-   - Extract and place all GIF files in the `src/assets/gifs` directory
-   - **Important**: The `src/assets/gifs` directory is not included in the repository due to size constraints. You must download and add these files manually.
+2. Pokemon sprite loading:
+   - Animated sprites are loaded at runtime from the credited [PkParaiso sprite page](https://www.pkparaiso.com/espada_escudo/sprites_pokemon.php?cid=14&order=#sprites).
+   - No Pokemon GIF sprite files are included in or redistributed by this repository.
+   - The application is intended as a non-commercial fan experiment. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-3. Configure Mapbox:
-   - Sign up for a Mapbox account at https://www.mapbox.com
-   - Create your API token
-   - Replace the token in `src/js/map.js`:
-     ```javascript
-     mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN';
-     ```
-
-4. Serve the project:
+3. Serve the project:
    - Use a local development server (e.g., Live Server in VS Code)
    - Or use Python's built-in server:
      ```bash
      python -m http.server 8000
      ```
 
-5. Open in browser:
+### Deploying to GitHub Pages
+
+This is a static site and does not require a build step.
+
+1. In the repository settings, open **Pages**.
+2. Under **Build and deployment**, select **Deploy from a branch**.
+3. Select the `master` branch and the `/ (root)` folder, then save.
+4. Open `https://<username>.github.io/AI-interactive-pokemon-go-web/` after the Pages deployment completes.
+
+Camera access requires HTTPS in production; GitHub Pages provides HTTPS.
+
+4. Open in browser:
    - Navigate to `http://localhost:8000`
    - Grant camera permissions when prompted
 
@@ -93,8 +95,6 @@ AI-interactive-pokemon-go-web/
 │   │   ├── animations.js
 │   ├── css/
 │   │   └── style.css
-│   └── assets/
-│       └── gifs/
 └── pokemon_files.json
 ```
 
@@ -110,8 +110,9 @@ Contributions are welcome! This is an open-source project aimed at creating a mo
 
 ## Credits
 
-- Pokemon GIF sprites from [PkParaiso](https://www.pkparaiso.com/espada_escudo/sprites_pokemon.php?cid=14&order=#sprites)
-- Map data provided by [Mapbox](https://www.mapbox.com)
+- Pokemon GIF sprites displayed from [PkParaiso](https://www.pkparaiso.com/espada_escudo/sprites_pokemon.php?cid=14&order=#sprites)
+- Map rendering provided by [MapLibre GL JS](https://maplibre.org/) with tiles from [OpenFreeMap](https://openfreemap.org/)
+- Search geocoding provided by [Photon](https://photon.komoot.io/)
 - Hand tracking powered by [MediaPipe](https://mediapipe.dev/)
 - 3D graphics rendered with [Three.js](https://threejs.org/)
 
@@ -130,11 +131,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Important Notes
 
-1. **Mapbox Token**: The current Mapbox token in the code may be deactivated. Please use your own token for development.
-2. **Pokemon Assets**: The Pokemon GIF files need to be downloaded separately from the provided Google Drive link due to size constraints.
-3. **Asset Credits**: All Pokemon sprites are sourced from PkParaiso and are used for educational purposes only.
-4. **AI Features**: This project uses MediaPipe's AI capabilities for hand tracking and gesture recognition to create an interactive gaming experience.
+1. **Pokemon Assets**: The application loads Pokemon GIF files from their source website at runtime and does not include copies in this repository.
+2. **Asset Credits**: Pokemon sprites are displayed from PkParaiso for this non-commercial fan experiment; this attribution does not grant additional rights to the assets.
+3. **AI Features**: This project uses MediaPipe's AI capabilities for hand tracking and gesture recognition to create an interactive gaming experience.
 
 ## Disclaimer
 
-This is a fan-made project for educational purposes. Pokemon and related properties are trademarks of Nintendo, Game Freak, and The Pokemon Company. 
+This is an unofficial, non-commercial fan-made project for educational and experimental purposes. Pokemon and related properties are trademarks of Nintendo, Game Freak, and The Pokemon Company. This project is not affiliated with, endorsed by, or sponsored by those rights holders or PkParaiso.
