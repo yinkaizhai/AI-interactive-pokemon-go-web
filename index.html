@@ -10,7 +10,6 @@
     <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <!-- Custom Styles -->
@@ -39,7 +38,11 @@
 
     <!-- Capture Page -->
     <div id="capturePage">
-        <button id="abandonBtn" class="abandon-button">Abandon Capture</button>
+        <div class="capture-controls">
+            <button id="abandonBtn" class="abandon-button">Back to map</button>
+            <button id="switchCameraBtn" class="switch-camera-button">Use rear camera</button>
+        </div>
+        <div class="tracking-hint">Close your fist, lift, then open to throw. On mobile, swipe up to throw.</div>
         <div class="game-background">
             <div class="battle-platform platform-left"></div>
             <div class="battle-platform platform-right"></div>
@@ -85,14 +88,17 @@
                     window.abandonCapture();
                 }
             });
+            document.getElementById('switchCameraBtn').addEventListener('click', () => {
+                if (typeof window.switchCaptureCamera === 'function') {
+                    window.switchCaptureCamera();
+                }
+            });
         };
 
         // Handle window resize
         window.addEventListener('resize', () => {
             if (typeof renderer !== 'undefined' && renderer) {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
+                window.resizeCaptureScene();
             }
         });
     </script>

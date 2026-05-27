@@ -82,6 +82,13 @@ Camera access requires HTTPS in production; GitHub Pages provides HTTPS.
    - Move your hand up and forward to throw
    - Time your throw to hit the Pokemon!
 
+### Mobile Controls
+
+- The capture view starts with the front camera for easier one-handed gesture control; use **Use rear camera** when preferred.
+- Hold one hand in view, close your fist, lift it, and open it to throw.
+- Swipe upward on the capture view to throw when gesture tracking is slow or lighting is difficult.
+- Mobile capture uses a lower-latency hand-tracking profile and pauses the camera when returning to the map.
+
 ## Project Structure
 ```
 AI-interactive-pokemon-go-web/

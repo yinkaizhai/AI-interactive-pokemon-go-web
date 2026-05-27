@@ -27,9 +27,18 @@ let catchSuccess = false;
 let currentPage = 'map';
 let selectedPokemon = null;
 let selectedPokemonGif = null;
+let mediaStream = null;
+let trackingFrameId = null;
+let inferencePending = false;
+let lastInferenceTime = 0;
+let activeFacingMode = 'user';
+let trackingGeneration = 0;
+let touchThrowStart = null;
+let lastRenderTime = 0;
 
 // Device detection
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
 
 // Constants
 const ABSORB_DURATION = 1000;
@@ -40,6 +49,8 @@ const throwDistance = -80;
 const bounceHeight = 2;
 const bounceDuration = 400;
 const initialZ = 15;
+const HAND_INFERENCE_INTERVAL = 1000 / (isMobile ? 20 : 30);
+const CAPTURE_RENDER_INTERVAL = 1000 / (isMobile ? 30 : 60);
 
 function initCapturePage() {
     // Set up video and canvas
@@ -47,15 +58,13 @@ function initCapturePage() {
     canvasElement = document.getElementById('outputCanvas');
     canvasCtx = canvasElement.getContext('2d');
 
-    // Set canvas size
-    canvasElement.width = window.innerWidth;
-    canvasElement.height = window.innerHeight;
-
     // Three.js setup
     setupThreeJS();
     
     // Initialize MediaPipe Hands
     setupMediaPipe();
+    startHandTracking();
+    setupTouchControls();
 
     // Start animation loop
     animate();
@@ -70,13 +79,14 @@ function setupThreeJS() {
         0.1, 1000
     );
     
-    renderer = new THREE.WebGLRenderer({ 
+    renderer = new THREE.WebGLRenderer({
         canvas: document.getElementById('threeCanvas'), 
         alpha: true,
-        antialias: true
+        antialias: !isMobile,
+        powerPreference: 'high-performance'
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1 : 2));
+    resizeCaptureScene();
 
     createPokeball();
     setupLighting();
@@ -84,15 +94,16 @@ function setupThreeJS() {
 
 function createPokeball() {
     const size = 0.8;
+    const segments = isMobile ? 16 : 32;
     
-    const topGeometry = new THREE.SphereGeometry(size, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    const topGeometry = new THREE.SphereGeometry(size, segments, segments, 0, Math.PI * 2, 0, Math.PI / 2);
     const topMaterial = new THREE.MeshBasicMaterial({
         color: 0xff0000,
         side: THREE.DoubleSide
     });
     const topHalf = new THREE.Mesh(topGeometry, topMaterial);
     
-    const bottomGeometry = new THREE.SphereGeometry(size, 32, 32, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
+    const bottomGeometry = new THREE.SphereGeometry(size, segments, segments, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2);
     const bottomMaterial = new THREE.MeshPhongMaterial({
         color: 0xffffff,
         shininess: 100,
@@ -105,7 +116,7 @@ function createPokeball() {
     pokeball.add(topHalf);
     pokeball.add(bottomHalf);
 
-    const ringGeometry = new THREE.RingGeometry(size * 0.15, size * 0.25, 32);
+    const ringGeometry = new THREE.RingGeometry(size * 0.15, size * 0.25, segments);
     const ringMaterial = new THREE.MeshBasicMaterial({
         color: 0x000000,
         side: THREE.DoubleSide
@@ -115,7 +126,7 @@ function createPokeball() {
     ring.rotation.y = Math.PI;
     pokeball.add(ring);
 
-    const innerCircleGeometry = new THREE.CircleGeometry(size * 0.15, 32);
+    const innerCircleGeometry = new THREE.CircleGeometry(size * 0.15, segments);
     const innerCircleMaterial = new THREE.MeshBasicMaterial({
         color: 0xffffff,
         side: THREE.DoubleSide
@@ -143,37 +154,118 @@ function setupLighting() {
 }
 
 function setupMediaPipe() {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (hands) {
+        return;
+    }
+
     hands = new Hands({
         locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
     });
     hands.setOptions({
-        maxNumHands: 2,
+        maxNumHands: 1,
         modelComplexity: isMobile ? 0 : 1,
-        minDetectionConfidence: isMobile ? 0.6 : 0.5,
-        minTrackingConfidence: isMobile ? 0.6 : 0.5,
-    });
-
-    const mediaPipeCamera = new Camera(videoElement, {
-        onFrame: async () => {
-            await hands.send({ image: videoElement });
-        },
-        width: isMobile ? 480 : 640,
-        height: isMobile ? 360 : 480,
-        facingMode: isMobile ? "environment" : "user",
+        minDetectionConfidence: isMobile ? 0.55 : 0.5,
+        minTrackingConfidence: isMobile ? 0.5 : 0.5,
     });
 
     hands.onResults(handleHandResults);
-    mediaPipeCamera.start().catch(handleCameraError);
+}
+
+async function startHandTracking() {
+    stopHandTracking();
+    updateCameraButton();
+    const requestedGeneration = trackingGeneration;
+
+    try {
+        const requestedStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+                facingMode: { ideal: activeFacingMode },
+                width: { ideal: isMobile ? 320 : 640 },
+                height: { ideal: isMobile ? 240 : 480 },
+                frameRate: { ideal: isMobile ? 24 : 30, max: isMobile ? 24 : 30 }
+            }
+        });
+        if (requestedGeneration !== trackingGeneration || currentPage !== 'capture') {
+            requestedStream.getTracks().forEach(track => track.stop());
+            return;
+        }
+        mediaStream = requestedStream;
+        videoElement.srcObject = mediaStream;
+        videoElement.muted = true;
+        await videoElement.play();
+        document.querySelector('.camera-error')?.remove();
+        lastInferenceTime = 0;
+        trackingFrameId = requestAnimationFrame(processHandFrame);
+    } catch (error) {
+        if (requestedGeneration === trackingGeneration && currentPage === 'capture') {
+            handleCameraError(error);
+        }
+    }
+}
+
+function stopHandTracking() {
+    trackingGeneration += 1;
+    touchThrowStart = null;
+    if (trackingFrameId) {
+        cancelAnimationFrame(trackingFrameId);
+        trackingFrameId = null;
+    }
+    if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
+    }
+    if (videoElement) {
+        videoElement.pause();
+        videoElement.srcObject = null;
+    }
+    if (canvasCtx && canvasElement) {
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    }
+}
+
+function processHandFrame(timestamp) {
+    if (currentPage !== 'capture' || !mediaStream) {
+        return;
+    }
+    if (!inferencePending && videoElement.readyState >= 2 &&
+        timestamp - lastInferenceTime >= HAND_INFERENCE_INTERVAL) {
+        lastInferenceTime = timestamp;
+        inferencePending = true;
+        hands.send({ image: videoElement })
+            .catch(error => console.warn('Hand tracking frame skipped:', error))
+            .finally(() => {
+                inferencePending = false;
+            });
+    }
+    trackingFrameId = requestAnimationFrame(processHandFrame);
+}
+
+async function switchCaptureCamera() {
+    activeFacingMode = activeFacingMode === 'user' ? 'environment' : 'user';
+    const cameraButton = document.getElementById('switchCameraBtn');
+    cameraButton.disabled = true;
+    await startHandTracking();
+    cameraButton.disabled = false;
+}
+
+function updateCameraButton() {
+    const cameraButton = document.getElementById('switchCameraBtn');
+    if (cameraButton) {
+        cameraButton.textContent = activeFacingMode === 'user' ? 'Use rear camera' : 'Use front camera';
+    }
 }
 
 function handleHandResults(results) {
+    if (currentPage !== 'capture') {
+        return;
+    }
     canvasCtx.save();
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
     canvasCtx.translate(canvasElement.width, 0);
     canvasCtx.scale(-1, 1);
 
-    if (results.multiHandLandmarks && results.multiHandedness) {
+    if (results.multiHandLandmarks?.length && results.multiHandedness?.length) {
         if (handFirstDetectedTime === null) {
             handFirstDetectedTime = Date.now();
             isHandReady = false;
@@ -194,6 +286,10 @@ function handleHandResults(results) {
     } else {
         handFirstDetectedTime = null;
         isHandReady = false;
+        isGrabbing = false;
+        if (!isThrown) {
+            throwingState = 'none';
+        }
     }
 
     canvasCtx.restore();
@@ -221,7 +317,8 @@ function handleHandGestures(landmarks, handedness) {
 
 function handleCameraError(error) {
     console.error('Camera start error:', error);
-    const errorMessage = document.createElement('div');
+    const errorMessage = document.querySelector('.camera-error') || document.createElement('div');
+    errorMessage.className = 'camera-error';
     errorMessage.style.cssText = `
         position: fixed;
         top: 50%;
@@ -239,12 +336,22 @@ function handleCameraError(error) {
         Please ensure camera permissions are granted<br>
         and refresh the page to try again
     `;
-    document.body.appendChild(errorMessage);
+    if (!errorMessage.parentNode) {
+        document.body.appendChild(errorMessage);
+    }
 }
 
 // Animation functions
-function animate() {
+function animate(timestamp = 0) {
     requestAnimationFrame(animate);
+
+    if (currentPage !== 'capture') {
+        return;
+    }
+    if (isMobile && timestamp - lastRenderTime < CAPTURE_RENDER_INTERVAL) {
+        return;
+    }
+    lastRenderTime = timestamp;
 
     if (isThrown && !isCatchingpokemon) {
         animateThrow();
@@ -255,6 +362,66 @@ function animate() {
     }
 
     renderer.render(scene, camera);
+}
+
+function resizeCaptureScene() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const aspectRatio = width / height;
+
+    if (canvasElement) {
+        const overlayScale = isMobile ? 0.75 : 1;
+        canvasElement.width = Math.round(width * overlayScale);
+        canvasElement.height = Math.round(height * overlayScale);
+    }
+    if (camera) {
+        camera.left = -15 * aspectRatio;
+        camera.right = 15 * aspectRatio;
+        camera.top = 15;
+        camera.bottom = -15;
+        camera.updateProjectionMatrix();
+    }
+    if (renderer) {
+        renderer.setSize(width, height, false);
+    }
+}
+
+function setupTouchControls() {
+    if (!isMobile) {
+        return;
+    }
+
+    const touchCanvas = document.getElementById('threeCanvas');
+    touchCanvas.addEventListener('pointerdown', event => {
+        if (event.pointerType !== 'touch' || isThrown || isCatchingpokemon) {
+            return;
+        }
+        touchThrowStart = { id: event.pointerId, y: event.clientY };
+        updatePokeballPosition((event.clientX / window.innerWidth) * 2 - 1);
+    });
+    touchCanvas.addEventListener('pointermove', event => {
+        if (!touchThrowStart || event.pointerId !== touchThrowStart.id || isThrown) {
+            return;
+        }
+        updatePokeballPosition((event.clientX / window.innerWidth) * 2 - 1);
+    });
+    touchCanvas.addEventListener('pointerup', event => {
+        if (!touchThrowStart || event.pointerId !== touchThrowStart.id) {
+            return;
+        }
+        const verticalDistance = touchThrowStart.y - event.clientY;
+        touchThrowStart = null;
+        if (verticalDistance > 45) {
+            throwDetected = true;
+            setTimeout(() => {
+                throwDetected = false;
+            }, 500);
+            launchThrow();
+        }
+    });
+    touchCanvas.addEventListener('pointercancel', () => {
+        touchThrowStart = null;
+    });
 }
 
 // Utility functions
@@ -274,6 +441,7 @@ function easeOutElastic(t) {
 
 function startCapture(pokemonName, gifPath) {
     currentPage = 'capture';
+    lastRenderTime = 0;
     selectedPokemon = pokemonName;
     selectedPokemonGif = gifPath;
     
@@ -310,6 +478,7 @@ function startCapture(pokemonName, gifPath) {
         pokeball.position.set(0, -12, initialZ);
         pokeball.rotation.set(0, 0, 0);
         pokeball.scale.set(1, 1, 1);
+        startHandTracking();
     }
 }
 
@@ -318,6 +487,8 @@ function returnToMap(captured) {
     
     document.getElementById('mapPage').style.display = 'block';
     document.getElementById('capturePage').style.display = 'none';
+    stopHandTracking();
+    document.querySelector('.camera-error')?.remove();
     
     if (captured && selectedPokemon) {
         // Remove the captured Pokemon's marker
@@ -421,14 +592,7 @@ function detectThrowGesture(landmarks) {
                     return false;
                 }
                 
-                canDetectThrow = false;
-                setTimeout(() => {
-                    canDetectThrow = true;
-                }, isMobile ? 2500 : 2000);
-                
-                isThrown = true;
-                throwStartTime = currentTime;
-                throwStartPosition.copy(pokeball.position);
+                launchThrow(currentTime);
                 return true;
             } else if (timeInMoving > 1000) {
                 throwingState = 'grabbing';
@@ -437,6 +601,19 @@ function detectThrowGesture(landmarks) {
     }
 
     return false;
+}
+
+function launchThrow(startTime = Date.now()) {
+    if (isThrown || isCatchingpokemon || !pokeball) {
+        return;
+    }
+    canDetectThrow = false;
+    setTimeout(() => {
+        canDetectThrow = true;
+    }, isMobile ? 1500 : 2000);
+    isThrown = true;
+    throwStartTime = startTime;
+    throwStartPosition.copy(pokeball.position);
 }
 
 function drawHandLandmarks(landmarks) {
@@ -483,9 +660,7 @@ function updatePokeballPosition(worldX) {
 }
 
 function abandonCapture() {
-    if (confirm('Are you sure you want to abandon the capture?')) {
-        returnToMap(false);
-    }
+    returnToMap(false);
 }
 
 function checkCollision() {
@@ -566,7 +741,9 @@ window.initCapturePage = initCapturePage;
 window.startCapture = startCapture;
 window.returnToMap = returnToMap;
 window.abandonCapture = abandonCapture;
+window.switchCaptureCamera = switchCaptureCamera;
+window.resizeCaptureScene = resizeCaptureScene;
 
 // Export additional functions
 window.checkCollision = checkCollision;
-window.handleCollision = handleCollision; 
+window.handleCollision = handleCollision;

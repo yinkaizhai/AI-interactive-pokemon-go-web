@@ -20,9 +20,10 @@ const nav = new maplibregl.NavigationControl({
 map.addControl(nav, 'top-right');
 
 // Pokemon spawn configuration
-const MAX_MARKERS = 80;
-const MAX_POKEMON_IN_VIEW = 20;
-const MIN_POKEMON_IN_VIEW = 5;
+const isMobileMap = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+const MAX_MARKERS = isMobileMap ? 30 : 80;
+const MAX_POKEMON_IN_VIEW = isMobileMap ? 10 : 20;
+const MIN_POKEMON_IN_VIEW = isMobileMap ? 3 : 5;
 const REFRESH_DELAY = 15000;
 const POKEMON_GIF_BASE_URL = 'https://www.pkparaiso.com/imagenes/espada_escudo/sprites/animados/';
 const POKEMON_LIFETIME = {
